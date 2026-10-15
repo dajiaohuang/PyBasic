@@ -56,6 +56,42 @@ class ProgramRegressionTests(unittest.TestCase):
 
         self.assertEqual(output.getvalue().strip(), "2")
 
+    def test_jump_out_of_inner_loop_preserves_outer_loop(self):
+        lexer = Lexer()
+        program = Program()
+        for statement in (
+            "10 LET I=0",
+            "20 WHILE I<2",
+            "30 LET I=I+1",
+            "40 WHILE 1=1",
+            "50 GOTO 70",
+            "60 WEND",
+            "70 WEND",
+            "80 PRINT I",
+        ):
+            program.add_stmt(lexer.tokenize(statement))
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program.execute()
+        self.assertEqual(output.getvalue().strip(), "2")
+
+    def test_jump_to_same_while_header_replaces_active_frame(self):
+        lexer = Lexer()
+        program = Program()
+        for statement in (
+            "10 LET I=0",
+            "20 WHILE I<2",
+            "30 LET I=I+1",
+            "40 IF I=1 THEN 20",
+            "50 WEND",
+            "60 PRINT I",
+        ):
+            program.add_stmt(lexer.tokenize(statement))
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            program.execute()
+        self.assertEqual(output.getvalue().strip(), "2")
+
 
 if __name__ == "__main__":
     unittest.main()

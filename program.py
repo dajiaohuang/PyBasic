@@ -274,7 +274,7 @@ class Program:
                     self.__program[line_number] = [tokenlist[1],]
                 else:
                     previous = self.__program.get(line_number)
-                    if previous and previous[0].category == Token.DATA:
+                    if previous is not None and previous[0].category == Token.DATA:
                         self.__data.delData(line_number)
                     self.__program[line_number] = tokenlist[1:]
 
@@ -341,15 +341,15 @@ class Program:
         matching_wends = {}
         for line in self.line_numbers():
             statement = self.__program[line]
-            if statement and statement[0].category == Token.WHILE:
+            if statement[0].category == Token.WHILE:
                 starts.append(line)
-            elif statement and statement[0].category == Token.WEND and starts:
+            elif statement[0].category == Token.WEND:
                 matching_wends[starts.pop()] = line
 
         while self.__while_stack:
             while_line = self.__while_stack[-1]
-            end_line = matching_wends.get(while_line)
-            if end_line is not None and while_line < target_line <= end_line:
+            end_line = matching_wends[while_line]
+            if while_line < target_line <= end_line:
                 break
             self.__while_stack.pop()
 
